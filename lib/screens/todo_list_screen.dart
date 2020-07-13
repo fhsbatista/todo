@@ -26,43 +26,70 @@ class _TodoListScreenState extends State<TodoListScreen> {
     });
   }
 
+  _deleteTask(Task task) async {
+    await DatabaseHelper.instance.deleteTask(task);
+    _updateTasksList();
+  }
+
   Widget _buildTaskTile(Task task) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+      padding: const EdgeInsets.symmetric(horizontal: 0.0),
       child: Column(
         children: <Widget>[
-          ListTile(
-            title: Text(
-              '${task.title}',
-              style: TextStyle(
-                decoration: task.status == 0
-                    ? TextDecoration.none
-                    : TextDecoration.lineThrough,
+          Dismissible(
+            key: UniqueKey(),
+            direction: DismissDirection.endToStart,
+            onDismissed: (direction) {
+              setState(() {
+                _deleteTask(task);
+              });
+            },
+            background: Stack(
+              alignment: AlignmentDirectional.centerEnd,
+              children: <Widget>[
+                Container(color: Colors.red),
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: 16),
+                  child: Icon(
+                    Icons.delete,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            child: ListTile(
+              title: Text(
+                '${task.title}',
+                style: TextStyle(
+                  decoration: task.status == 0
+                      ? TextDecoration.none
+                      : TextDecoration.lineThrough,
+                ),
               ),
-            ),
-            subtitle: Text(
-              '${DateFormat('dd/MM/yyyy').format(task.date)} • ${task.priority}',
-              style: TextStyle(
-                decoration: task.status == 0
-                    ? TextDecoration.none
-                    : TextDecoration.lineThrough,
+              subtitle: Text(
+                '${DateFormat('dd/MM/yyyy').format(task.date)} • ${task.priority}',
+                style: TextStyle(
+                  decoration: task.status == 0
+                      ? TextDecoration.none
+                      : TextDecoration.lineThrough,
+                ),
               ),
-            ),
-            trailing: Checkbox(
-              onChanged: (isChecked) {
-                task.status = isChecked ? 1 : 0;
-                DatabaseHelper.instance.updateTask(task);
-                _updateTasksList();
-              },
-              activeColor: Theme.of(context).primaryColor,
-              value: task.status == 1,
-            ),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => AddTaskScreen(
-                  task: task,
-                  onFinished: () => _updateTasksList(),
+              trailing: Checkbox(
+                onChanged: (isChecked) {
+                  task.status = isChecked ? 1 : 0;
+                  DatabaseHelper.instance.updateTask(task);
+                  _updateTasksList();
+                },
+                activeColor: Theme.of(context).primaryColor,
+                value: task.status == 1,
+              ),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AddTaskScreen(
+                    task: task,
+                    onFinished: () => _updateTasksList(),
+                  ),
                 ),
               ),
             ),
